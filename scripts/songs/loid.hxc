@@ -1,0 +1,64 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import flixel.tweens.FlxTween;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+import funkin.audio.FunkinSound;
+import funkin.graphics.FunkinSprite;
+import flixel.tweens.FlxEase;
+import funkin.Paths;
+import funkin.play.song.Song;
+import funkin.play.Countdown;
+import funkin.util.Constants;
+import funkin.Conductor;
+import funkin.play.PlayStatePlaylist;
+import funkin.Highscore;
+import funkin.play.cutscene.VideoCutscene;
+
+class LoidSong extends Song
+{
+	function new()
+	{
+		super('loid');
+	}
+
+	var hasPlayedIntroCutscene:Bool;
+
+	override function onCreate(event) {
+		super.onCreate(event);
+		if (PlayState.instance == null || PlayState.instance.currentStage == null) return;
+		if (PlayState.instance.isMinimalMode) return;
+
+		hasPlayedIntroCutscene = false;
+	}
+
+	function onBeatHit(event:SongTimeScriptEvent):Void {	
+		switch(event.beat) {
+		}
+	}
+	
+	function onSongRetry(event:ScriptEvent){
+		super.onSongRetry(event);
+	  
+		hasPlayedIntroCutscene = true;
+	}	  
+
+	function startVideo() {
+		VideoCutscene.play(Paths.videos('loidcutscene'));
+	}
+	  
+	public function onCountdownStart(event):Void {
+		super.onCountdownStart(event);
+		if (!PlayStatePlaylist.isStoryMode) hasPlayedIntroCutscene = true;
+		
+		if (!hasPlayedIntroCutscene) {
+		  	trace('Pausing countdown to play cutscene.');
+	
+		  	hasPlayedIntroCutscene = true;
+	
+		  	event.cancel(); // CANCEL THE COUNTDOWN!
+	
+		  	startVideo();
+		}
+	}
+}

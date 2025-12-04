@@ -1,0 +1,227 @@
+import funkin.modding.module.Module;
+import flixel.FlxG;
+import funkin.Paths;
+import funkin.ui.freeplay.FreeplayState;
+import funkin.util.ReflectUtil;
+import funkin.ui.freeplay.SongMenuItem;
+import funkin.audio.FunkinSound;
+import funkin.modding.base.ScriptedMusicBeatSubState;
+import StringTools;
+import flixel.util.FlxTimer;
+import funkin.PlayerSettings;
+import funkin.util.TouchUtil;
+import funkin.util.SwipeUtil;
+import funkin.mobile.input.ControlsHandler;
+import funkin.data.song.SongRegistry;
+import flixel.FlxSprite;
+import flixel.tweens.FlxTween;
+import funkin.play.PlayStatePlaylist;
+import funkin.ui.transition.LoadingState;
+import funkin.FunkinMemory;
+import funkin.play.PlayState;
+import funkin.graphics.FunkinSprite;
+import flixel.addons.transition.FlxTransitionableState;
+
+using StringTools;
+
+class MikuFreeplay extends Module {
+	public function new(){
+		super('MikuFreeplay');
+
+		FunkinMemory.cacheTexture(Paths.image('loading/transIn'));
+		FunkinMemory.cacheTexture(Paths.image('loading/transOut'));
+	}
+
+	public var transitioning:Bool;
+
+	var mikulevelids = ['MikuWeek', 'MikuWeekExtras'];
+
+	var changedCapsules:Array<SongMenuItem>;
+	var changeSelectionCallback:String->Void;
+
+	override function onSubStateOpenEnd(event) {
+        super.onSubStateOpenEnd(event);
+		if (!(event.targetState is FreeplayState)) return;
+		transitioning = false;
+		var state = event.targetState;
+		changedCapsules = [];
+		changeSelectionCallback = state.letterSort.changeSelectionCallback;
+		state.letterSort.changeSelectionCallback = (str) -> {
+			changeSelectionCallback(str);
+			checkCapsules();
+		};
+		var filteredCapsules:Array<SongMenuItem> = FlxG.state.subState.grpCapsules.members.filter(function(cap:SongMenuItem) {
+       		// Dead capsules are ones which were removed from the list when changing filters.
+        	return cap != null && cap.alive && cap.freeplayData != null && mikulevelids.contains(cap.freeplayData.levelId);
+      	});
+		for (capsule in filteredCapsules){
+			if (capsule == null || !capsule.alive) continue;
+
+			changedCapsules.push(capsule); // Push these changed capsules
+			customDisplay(capsule);
+		}	
+	}
+
+	function mikuTransition(capsule) {
+		FlxG.state.subState.controls.active = false;
+		FlxG.state.subState.letterSort.inputEnabled = false;
+		FunkinSound.playOnce(Paths.sound('confirmMenuMiku'));
+		transitioning = true;
+		var songCap = capsule;
+		FlxTween.cancelTweensOf(FlxG.sound.music);
+		FlxG.sound.music.stop();
+
+		FlxG.state.subState.dj?.onConfirm();
+
+		FlxG.state?.subState?.fadeDots(false);
+		
+		FlxG.state.subState?.grpCapsules.members[FlxG.state.subState.curSelected].forcePosition();
+		FlxG.state.subState?.grpCapsules?.members[FlxG.state.subState.curSelected]?.confirm();
+	
+		FlxG.state.subState.backingCard.confirm();
+		new FlxTimer().start(FlxG.state.subState.styleData?.getStartDelay(), function(tmr:FlxTimer) {
+			var loadingSprite:FunkinSprite = new FunkinSprite(0, 0);
+			loadingSprite.frames = Paths.getSparrowAtlas('loading/transOut');
+			loadingSprite.animation.addByPrefix('outro', 'loading anim', 24, false);
+			loadingSprite.animation.play('outro', false, false);
+			loadingSprite.scrollFactor.set();
+			loadingSprite.cameras = [FlxG.state.subState.funnyCam];
+			loadingSprite.updateHitbox();
+			FlxG.state.subState.add(loadingSprite);
+			loadingSprite.screenCenter();
+			loadingSprite.animation?.onFinish.add(function(name:String):Void {
+				FlxTimer.wait(0.2, () -> {
+					loadSong(songCap);
+				});
+			});		
+		});
+	}
+
+	override function onStateChangeEnd(event) {
+        super.onStateChangeEnd(event);
+		if (event.targetState is PlayState) {
+			if (!transitioning) return;
+			transitioning = false;
+			var loadingSprite:FunkinSprite = new FunkinSprite(0, 0);
+			loadingSprite.frames = Paths.getSparrowAtlas('loading/transIn');
+			loadingSprite.animation.addByPrefix('outro', 'loading anim', 24, false);
+			loadingSprite.animation.play('outro', false, false);
+			loadingSprite.cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+			loadingSprite.scrollFactor.set();
+			loadingSprite.updateHitbox();
+			event.targetState.insert(event.targetState.members.length, loadingSprite);
+			loadingSprite.screenCenter();
+			loadingSprite.animation?.onFinish.add(function(name:String):Void {
+				FlxTimer.wait(0.1, () -> {
+					loadingSprite.destroy();
+				});
+			});		
+		} else {
+			transitioning = false;
+		}
+	}
+	function loadSong(cap) {
+		PlayStatePlaylist.isStoryMode = false;
+		
+		var targetSongId:String = cap.freeplayData.data.id;
+		var targetSongNullable:Song = SongRegistry.instance.fetchEntry(targetSongId);
+		if (targetSongNullable == null)
+		{
+			FlxG.log.warn('WARN: could not find song with id (${targetSongId})');
+			return;
+		}
+		var targetSong:Song = targetSongNullable;
+		var targetVariation:String = FlxG.state.subState.currentVariation;
+		var targetLevelId:String = cap.freeplayData.levelId;
+		var targetInstId:String = null;
+		PlayStatePlaylist.campaignId = targetLevelId;
+	
+		var targetDifficulty:SongDifficulty = targetSong.getDifficulty(FlxG.state.subState.currentDifficulty, FlxG.state.subState.currentVariation);
+		if (targetDifficulty == null)
+		{
+			FlxG.log.warn('WARN: could not find difficulty with id (${currentDifficulty})');
+			return;
+		}
+	
+		if (targetInstId == null)
+		{
+			var baseInstrumentalId:String = targetSong.getBaseInstrumentalId(FlxG.state.subState.currentDifficulty, FlxG.state.subState.currentVariation);
+			targetInstId = baseInstrumentalId;
+		}
+	
+		FlxTransitionableState.skipNextTransIn = true;
+		FlxTransitionableState.skipNextTransOut = true;
+
+		FunkinSound.emptyPartialQueue();
+	
+		Paths.setCurrentLevel(targetLevelId);
+		LoadingState.loadPlayState(
+		{
+			targetSong: targetSong,
+			targetDifficulty: FlxG.state.subState.currentDifficulty,
+			targetVariation: FlxG.state.subState.currentVariation,
+			targetInstrumental: targetInstId,
+			practiceMode: false,
+			minimalMode: false,
+
+			botPlayMode: false,
+			// TODO: Make these an option! It's currently only accessible via chart editor.
+			// startTimestamp: 0.0,
+			// playbackRate: 0.5,
+			// botPlayMode: true,
+		}, true);	
+	}
+
+	function customDisplay(cap:SongMenuItem) {
+		if (cap?.freeplayData == null) return;
+		cap.weekType.visible = true;
+		cap.weekType.frames = Paths.getSparrowAtlas('freeplay/freeplayCapsule/mikuWeek');
+		cap.weekType.animation.addByPrefix('MIKU', 'MIKU text instance 1', 24, false);
+		cap.weekType.animation.play('MIKU', true);
+		var songCap = cap;
+		cap.onConfirm = function() {
+			if (FlxG.state.subState.controls.active) mikuTransition(songCap);
+		};
+	}
+	
+	function checkCapsules(){
+		new FlxTimer().start(0.1, _ -> { // Add a small delay to grab the right capsules
+			while (changedCapsules.length > 0) {
+				var capsule = changedCapsules.shift();
+
+				if (capsule.weekType.graphic.key.contains('freeplay/freeplayCapsule/mikuWeek')) resetCapsules(capsule);
+			}
+			if (changedCapsules.length != 0) changedCapsules = []; // Clear the array just in case
+			var filteredCapsules:Array<SongMenuItem> = FlxG.state.subState.grpCapsules.members.filter(function(cap:SongMenuItem) {
+       			// Dead capsules are ones which were removed from the list when changing filters.
+        		return cap != null && cap.alive && cap.freeplayData != null && mikulevelids.contains(cap.freeplayData.levelId);
+      		});
+			for (capsule in filteredCapsules){
+				if (capsule == null || !capsule.alive) continue;
+
+				changedCapsules.push(capsule); // Push these changed capsules
+				customDisplay(capsule);
+			}
+		});			
+	}
+
+	function resetCapsules(cap:SongMenuItem) {
+		if (cap?.freeplayData == null) return;
+		cap.weekType.frames = Paths.getSparrowAtlas('freeplay/freeplayCapsule/weektypes');
+		cap.weekType.animation.addByPrefix('WEEK', 'WEEK text instance 1', 24, false);
+    	cap.weekType.animation.addByPrefix('WEEKEND', 'WEEKEND text instance 1', 24, false);
+		cap.checkWeek(cap.freeplayData.data.id);
+	}
+
+	override function onUpdate(event:UpdateScriptEvent) {
+		super.onUpdate(event);
+		if (!(FlxG.state.subState is FreeplayState)) return;
+		var switched = PlayerSettings.player1.controls.UI_LEFT_P || PlayerSettings.player1.controls.UI_RIGHT_P;
+		if (FlxG.state.subState.controls.active && (switched || 
+		TouchUtil.pressAction(FlxG.state.subState.diffSelLeft, FlxG.state.subState.funnyCam, false) || 
+		TouchUtil.pressAction(FlxG.state.subState.diffSelRight, FlxG.state.subState.funnyCam, false) || 
+		SwipeUtil.swipeLeft || SwipeUtil.swipeRight)){
+			checkCapsules();
+		}
+	}
+}

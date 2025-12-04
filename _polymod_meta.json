@@ -1,0 +1,14 @@
+{
+  "title": "Miku Mod V-Slice Port",
+  "description": "A port of Evdial's Miku Mod into V-Slice.",
+  "contributors": [
+    {
+      "name": "Comedy Lost",
+      "role": "Porting / Coding",
+      "url": "https://www.youtube.com/channel/UCGUHN_tmfSFAzKa3hOhHT-Q"
+    }
+  ],
+  "api_version": "0.7.3",
+  "mod_version": "1.0.0",
+  "license": "Apache-2.0"
+}

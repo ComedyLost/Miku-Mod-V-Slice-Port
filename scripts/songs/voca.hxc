@@ -1,0 +1,81 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import flixel.tweens.FlxTween;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+import funkin.audio.FunkinSound;
+import funkin.graphics.FunkinSprite;
+import flixel.tweens.FlxEase;
+import funkin.Paths;
+import funkin.play.song.Song;
+import funkin.play.Countdown;
+import funkin.util.Constants;
+import funkin.Conductor;
+import funkin.play.PlayStatePlaylist;
+import funkin.play.cutscene.VideoCutscene;
+import funkin.play.cutscene.CutsceneType;
+
+class VocaSong extends Song
+{
+	function new()
+	{
+		super('voca');
+	}
+
+	var hasPlayedIntroCutscene:Bool;
+	var hasPlayedOutroCutscene:Bool;
+
+	override function onCreate(event) {
+		super.onCreate(event);
+		if (PlayState.instance == null || PlayState.instance.currentStage == null) return;
+		if (PlayState.instance.isMinimalMode) return;
+
+		hasPlayedIntroCutscene = false;
+		hasPlayedOutroCutscene = false;
+	}
+
+	
+	function onSongRetry(event:ScriptEvent){
+		super.onSongRetry(event);
+	  
+		hasPlayedIntroCutscene = true;
+	}	  
+
+	function startIntroVideo() {
+		VideoCutscene.play(Paths.videos('vocacutscene'));
+	}
+	  
+	function startOutroVideo() {
+		VideoCutscene.play(Paths.videos('mikucreditsend'), CutsceneType.ENDING);
+	}
+
+	public function onCountdownStart(event):Void {
+		super.onCountdownStart(event);
+		if (!PlayStatePlaylist.isStoryMode) hasPlayedIntroCutscene = true;
+		
+		if (!hasPlayedIntroCutscene) {
+		  	trace('Pausing countdown to play cutscene.');
+	
+		  	hasPlayedIntroCutscene = true;
+	
+		  	event.cancel(); // CANCEL THE COUNTDOWN!
+	
+		  	startIntroVideo();
+		}
+	}
+
+	public function onSongEnd(event):Void {
+		super.onSongEnd(event);
+		if (!PlayStatePlaylist.isStoryMode) hasPlayedOutroCutscene = true;
+		
+		if (!hasPlayedOutroCutscene) {
+		  	trace('Pausing countdown to play cutscene.');
+	
+		  	hasPlayedOutroCutscene = true;
+	
+		  	event.cancel(); // CANCEL THE COUNTDOWN!
+	
+		  	startOutroVideo();
+		}
+	}
+}

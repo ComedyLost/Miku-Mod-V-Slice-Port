@@ -1,0 +1,123 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import funkin.play.stage.Stage;
+import funkin.graphics.FunkinSprite;
+import funkin.Paths;
+import funkin.play.Countdown;
+import funkin.Paths;
+import flixel.FlxSprite;
+import flixel.tweens.FlxTween;
+import flixel.FlxCamera;
+import flixel.util.FlxTimer;
+import funkin.Highscore;
+import funkin.audio.FunkinSound;
+
+import Std;
+
+class Expo2Stage extends Stage
+{
+	function new()
+	{
+		super('expo2');
+	}
+
+	public var shouldHey:Bool;
+	var perfect:FlxSprite;
+	var crowd:FunkinSound;
+	var perfectMode:Bool = true;
+
+	var songs = [
+		'tutorial-miku' => 113,
+		'loid' => 566,
+		'endurance' => 269,
+		'voca' => 324,
+		'endless' => 361,
+		'popipo' => 245,
+		'aishite' => 135,
+		'siu' => 263,
+		'disappearance' => 389
+	];
+
+	override function buildStage() {
+		super.buildStage();
+		shouldHey = true;
+		perfectMode = true;
+		perfect = new FlxSprite(0, 0);
+		perfect.frames = Paths.getSparrowAtlas('expo/chance/Perfect');
+		perfect.animation.addByPrefix('perfect', "Perfect", 24, false);
+		perfect.cameras = [PlayState.instance.camHUD];
+		perfect.alpha = 0;
+		perfect.visible = false;
+		perfect.screenCenter();
+		perfect.updateHitbox();
+		PlayState.instance.add(perfect);
+	}
+
+	override function onNoteHit(event) {
+		super.onNoteHit(event);
+		if (event.note.noteData.getMustHitNote() && Highscore.tallies.combo > 50) {
+			if (event.isComboBreak) {
+				getNamedProp('Expo Lights').alpha = 0;
+				FunkinSound.playOnce(Paths.sound('Awww'));
+				getNamedProp('Expo Crowd').idleSuffix = '';
+				getNamedProp('Expo Crowd').playAnimation('miss', true);
+				perfectMode = false;
+				return;
+			}
+			/* if (Highscore.tallies.missed == 0) {
+				getNamedProp('Expo Crowd').idleSuffix = '-cheer';
+			}*/
+			getNamedProp('Expo Lights').alpha = 1;
+		}
+	}
+
+	override function onNoteMiss(event) {
+		if (event.note.noteData.getMustHitNote()) {
+			perfectMode = false;
+			if (Highscore.tallies.combo > 50) {
+				getNamedProp('Expo Lights').alpha = 0;
+				FunkinSound.playOnce(Paths.sound('Awww'));
+				// getNamedProp('Expo Crowd').idleSuffix = '';
+				getNamedProp('Expo Crowd').playAnimation('miss', true);
+			}	
+		}
+		super.onNoteMiss(event);
+	}
+
+	function onBeatHit(event:SongTimeScriptEvent):Void {
+		var curBeat = event.beat;
+		var curSong = PlayState.instance?.currentSong?.id;
+		/*if (curBeat % getNamedProp('Expo Crowd').danceEvery == 0 && Highscore.tallies.combo > 50 && Highscore.tallies.missed == 0 && shouldHey)
+			FunkinSound.playOnce(Paths.sound('Hey'), 0.8);*/
+		perfect.visible = true;
+		if (songs[curSong] != null && curBeat == songs[curSong]) {
+			if (Highscore.tallies.combo > 50) crowd = FunkinSound.playOnce(Paths.sound('Crowd'));
+			if (!perfectMode || Highscore.tallies.missed > 0) return;
+			getNamedProp('Expo Crowd').idleSuffix = '-cheer';
+			perfect.alpha = 1;
+			perfect.visible = true;
+			perfect.animation.play('perfect', true);
+		}
+	}
+
+	public function onSongEnd(event):Void {
+		super.onSongEnd(event);
+		crowd?.stop();	
+	}
+
+	function onDestroy(event:ScriptEvent){
+		super.onDestroy(event);
+		crowd?.stop();	
+	}
+
+	public function onSongRetry(event):Void {
+		super.onSongRetry(event);
+		shouldHey = true;
+		perfectMode = true;
+		crowd?.stop();
+		perfect?.alpha = 0;
+		perfect?.visible = false;
+		getNamedProp('Expo Crowd').idleSuffix = '';
+		getNamedProp('Expo Lights').alpha = 0;
+	}
+}

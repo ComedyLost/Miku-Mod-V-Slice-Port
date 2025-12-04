@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "name": "Boyfriend (Expo Dark)",
+  "renderType": "multisparrow",
+  "assetPath": "characters/voca_bf",
+  "cameraOffsets": [0, 60],
+  "healthIcon": {"id": "bf"},
+  "flipX": true,
+  "singTime": 8.0,
+  "animations": [
+    {
+      "name": "idle",
+      "prefix": "BF idle dance",
+      "offsets": [-5, 0]
+    },
+    {
+      "name": "singLEFT",
+      "prefix": "BF NOTE LEFT0",
+      "offsets": [5, -9]
+    },
+    {
+      "name": "singDOWN",
+      "prefix": "BF NOTE DOWN0",
+      "offsets": [-10, -50]
+    },
+    {
+      "name": "singUP",
+      "prefix": "BF NOTE UP0",
+      "offsets": [-49, 7]
+    },
+    {
+      "name": "singRIGHT",
+      "prefix": "BF NOTE RIGHT0",
+      "offsets": [-48, -7]
+    },
+    {
+      "name": "singLEFTmiss",
+      "prefix": "BF NOTE LEFT MISS",
+      "offsets": [5, -9]
+    },
+    {
+      "name": "singDOWNmiss",
+      "prefix": "BF NOTE DOWN MISS",
+      "offsets": [-10, -50]
+    },
+    {
+      "name": "singUPmiss",
+      "prefix": "BF NOTE UP MISS",
+      "offsets": [-49, 7]
+    },
+    {
+      "name": "singRIGHTmiss",
+      "prefix": "BF NOTE RIGHT MISS",
+      "offsets": [-48, -7]
+    },
+    {
+      "name": "firstDeath",
+      "prefix": "BF dies",
+      "offsets": [33, -139]
+    },
+    {
+      "name": "fakeoutDeath",
+      "prefix": "BF dies",
+      "offsets": [33, -139]
+    },
+    {
+      "name": "deathLoop",
+      "prefix": "BF Dead Loop",
+      "looped": true,
+      "offsets": [33, -145]
+    },
+    {
+      "name": "deathConfirm",
+      "prefix": "BF Dead confirm",
+      "offsets": [33, -81]
+    }
+  ]
+}

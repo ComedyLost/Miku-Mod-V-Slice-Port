@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="dvol1-text.png">
+	<!-- Created with Adobe Animate version 24.0.6.54 -->
+	<!-- http://www.adobe.com/products/animate.html -->
+	<SubTexture name="switch0000" x="0" y="0" width="221" height="138" frameX="0" frameY="0" frameWidth="221" frameHeight="146"/>
+	<SubTexture name="switch0001" x="0" y="0" width="221" height="138" frameX="0" frameY="0" frameWidth="221" frameHeight="146"/>
+	<SubTexture name="switch0002" x="0" y="0" width="221" height="138" frameX="0" frameY="0" frameWidth="221" frameHeight="146"/>
+	<SubTexture name="switch0003" x="0" y="0" width="221" height="138" frameX="0" frameY="0" frameWidth="221" frameHeight="146"/>
+	<SubTexture name="idle0000" x="221" y="0" width="221" height="138" frameX="0" frameY="-8" frameWidth="221" frameHeight="146"/>
+</TextureAtlas>

@@ -1,0 +1,39 @@
+import funkin.graphics.adobeanimate.FlxAtlasSprite;
+import flixel.FlxG;
+import funkin.audio.FunkinSound;
+import funkin.play.character.SparrowCharacter;
+import funkin.play.GameOverSubState;
+import funkin.play.PlayState;
+import funkin.Preferences;
+import funkin.util.Constants;
+import funkin.util.HapticUtil;
+import flixel.tweens.FlxTween;
+
+class MrHCharacter extends SparrowCharacter
+{
+	function new()
+	{
+		super('mrH');
+	}
+
+	function onNoteHit(event) {
+		super.onNoteHit(event);
+		if (!event.note.noteData.getMustHitNote()) return;
+		FlxTween.cancelTweensOf(PlayState.instance.currentStage.getBoyfriend());
+		switch (event.note.noteData.getDirection()) {
+			case 0:
+				PlayState.instance.currentStage.getBoyfriend().x -= 20; 
+				FlxTween.tween(PlayState.instance.currentStage.getBoyfriend(), {x: PlayState.instance.currentStage.getBoyfriend().originalPosition.x}, 20);
+			case 1:
+				PlayState.instance.currentStage.getBoyfriend().y += 20; 
+				FlxTween.tween(PlayState.instance.currentStage.getBoyfriend(), {y: PlayState.instance.currentStage.getBoyfriend().originalPosition.y}, 20);
+			case 2:
+				PlayState.instance.currentStage.getBoyfriend().y -= 20; 
+				FlxTween.tween(PlayState.instance.currentStage.getBoyfriend(), {y: PlayState.instance.currentStage.getBoyfriend().originalPosition.y}, 20);
+			case 3:
+				PlayState.instance.currentStage.getBoyfriend().x += 20; 
+				FlxTween.tween(PlayState.instance.currentStage.getBoyfriend(), {x: PlayState.instance.currentStage.getBoyfriend().originalPosition.x}, 20);
+		}
+
+	}
+}

@@ -1,0 +1,35 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import flixel.tweens.FlxTween;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+import funkin.audio.FunkinSound;
+import funkin.graphics.FunkinSprite;
+import flixel.tweens.FlxEase;
+import funkin.Paths;
+import funkin.play.song.Song;
+import funkin.play.Countdown;
+import funkin.util.Constants;
+import funkin.Conductor;
+import funkin.play.PlayStatePlaylist;
+import funkin.Preferences;
+
+class EndlessSong extends Song
+{
+	function new()
+	{
+		super('endless');
+	}
+
+	override function onSongStart(event) {
+		super.onSongStart(event);
+		if (PlayState.instance == null || PlayState.instance.currentStage == null) return;
+		if (PlayState.instance.isMinimalMode) return;
+
+		if (FlxG.random.bool(0.000001) && Preferences.subtitles) {
+			var subtitlesFile:String = 'songs/' + PlayState.instance.currentSong.id + '/subtitles/song-lyrics-til';
+			if (PlayState.instance.currentVariation != Constants.DEFAULT_VARIATION) subtitlesFile += '-' + PlayState.instance.currentVariation;
+			if (PlayState.instance.subtitles != null) PlayState.instance.subtitles.assignSubtitles(subtitlesFile, FlxG.sound.music);	  
+		}
+	}
+}

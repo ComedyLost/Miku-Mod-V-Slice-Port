@@ -1,0 +1,95 @@
+import flixel.FlxG;
+import funkin.play.PlayState;
+import flixel.tweens.FlxTween;
+import flixel.FlxSprite;
+import flixel.util.FlxTimer;
+import funkin.audio.FunkinSound;
+import funkin.graphics.FunkinSprite;
+import flixel.tweens.FlxEase;
+import funkin.Paths;
+import funkin.play.song.Song;
+import funkin.play.Countdown;
+import funkin.util.Constants;
+import funkin.Conductor;
+import funkin.play.PlayStatePlaylist;
+import funkin.Highscore;
+import funkin.play.cutscene.VideoCutscene;
+
+class EnduranceSong extends Song
+{
+	function new()
+	{
+		super('endurance');
+	}
+
+	var hasPlayedIntroCutscene:Bool;
+	var bgblack:FlxSprite;
+
+	override function onCreate(event) {
+		super.onCreate(event);
+		if (PlayState.instance == null || PlayState.instance.currentStage == null) return;
+		if (PlayState.instance.isMinimalMode) return;
+
+		hasPlayedIntroCutscene = false;
+		
+		bgblack = new FlxSprite(-FlxG.width * FlxG.camera.zoom,
+			-FlxG.height * FlxG.camera.zoom).makeGraphic(FlxG.width * 3, FlxG.height * 3, 0xFF000000);
+		bgblack.alpha = 0;
+		bgblack.scrollFactor.set();
+		bgblack.setGraphicSize(Std.int(bgblack.width * 1.60));
+		bgblack.cameras = [PlayState.instance.camGame];
+		PlayState.instance.add(bgblack);
+	}
+
+	function onBeatHit(event:SongTimeScriptEvent):Void {	
+		switch(event.beat) {
+			case 198:
+				bgblack.visible = true;
+				bgblack.alpha = 0;
+				FlxTween.tween(bgblack, {alpha: 1}, 0.3, {ease: FlxEase.quartInOut});
+			case 200:
+				var light1 = PlayState.instance.currentStage.getNamedProp('Expo Focus Light');
+				light1.visible = true;
+				light1.alpha = 1;
+				FlxTween.tween(bgblack, {alpha: 0}, 7.5, {ease: FlxEase.quartInOut});
+			case 264:
+				var light1 = PlayState.instance.currentStage.getNamedProp('Expo Focus Light');
+				bgblack.visible = false;
+				FlxTween.tween(light1, {alpha: 0}, 0.4, {ease: FlxEase.quartInOut});
+			case 266:
+				var light1 = PlayState.instance.currentStage.getNamedProp('Expo Focus Light');
+				light1.visible = false;
+		}
+	}
+	
+	function onSongRetry(event:ScriptEvent){
+		super.onSongRetry(event);
+	  
+		hasPlayedIntroCutscene = true;
+		var light1 = PlayState.instance.currentStage.getNamedProp('Expo Focus Light');
+		FlxTween.cancelTweensOf(light1);
+		light1.visible = false;
+		light1.alpha = 0;
+		FlxTween.cancelTweensOf(bgblack);
+		bgblack.visible = false;
+	}	  
+
+	function startVideo() {
+		VideoCutscene.play(Paths.videos('endurancecutscene'));
+	}
+	  
+	public function onCountdownStart(event):Void {
+		super.onCountdownStart(event);
+		if (!PlayStatePlaylist.isStoryMode) hasPlayedIntroCutscene = true;
+		
+		if (!hasPlayedIntroCutscene) {
+		  	trace('Pausing countdown to play cutscene.');
+	
+		  	hasPlayedIntroCutscene = true;
+	
+		  	event.cancel(); // CANCEL THE COUNTDOWN!
+	
+		  	startVideo();
+		}
+	}
+}

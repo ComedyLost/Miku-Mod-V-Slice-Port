@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "name": "Hundrec Funny PNG",
+  "assetPath": "characters/hundrecPNG",
+  "singTime": 8.0,
+  "offsets": [-50, 0],
+  "cameraOffsets": [20, 100],
+  "flipX": true,
+  "animations": [
+    {
+      "name": "idle",
+      "prefix": "monster idle",
+      "offsets": [0, -9]
+    }
+  ]
+}
