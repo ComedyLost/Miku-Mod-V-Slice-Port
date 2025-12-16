@@ -12,6 +12,7 @@
  "playData": {
   "songVariations": [],
   "difficulties": [
+   "easy",
    "normal",
    "hard"
   ],
@@ -30,7 +31,8 @@
   "stage": "expo2",
   "noteStyle": "funkin",
   "ratings": {
-   "normal": 0,
+   "easy": 4,
+   "normal": 5,
    "hard": 7
   },
   "previewStart": 0,

@@ -55,7 +55,7 @@ class ExpoStage extends Stage
 
 	override function onNoteHit(event) {
 		super.onNoteHit(event);
-		if (event.note.noteData.getMustHitNote() && Highscore.tallies.combo > 50) {
+		if (event.note.noteData.getMustHitNote() && event.comboCount > 50) {
 			if (event.isComboBreak) {
 				getNamedProp('Expo Lights').alpha = 0;
 				FunkinSound.playOnce(Paths.sound('Awww'));
@@ -74,7 +74,7 @@ class ExpoStage extends Stage
 	override function onNoteMiss(event) {
 		if (event.note.noteData.getMustHitNote()) {
 			perfectMode = false;
-			if (Highscore.tallies.combo > 50) {
+			if (event.comboCount > 50) {
 				getNamedProp('Expo Lights').alpha = 0;
 				FunkinSound.playOnce(Paths.sound('Awww'));
 				// getNamedProp('Expo Crowd').idleSuffix = '';
